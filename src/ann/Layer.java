@@ -1,76 +1,113 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package ann;
 
-import java.util.ArrayList;
-import org.jblas.DoubleMatrix;
-
+import java.util.Random;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.*;
 /**
  *
- * @author Hera
+ * @author Tasnim
  */
 public class Layer {
+    RealMatrix Z, W, D, S, Fp;
+    // W is the outgoing weight matrix for this layer
+    // Z is the matrix that holds output values  
+    // S is the matrix that holds the inputs to this layer
+    // D is the matrix that holds the deltas for this layer
+    // Fp is the matrix that holds the derivatives of the activation function
+    boolean input;
+    boolean output; 
+    Integer numNodesThisLayer;
+    Integer numNodesNextLayer;
+    int minibatchSize;
+
     
-    Neuron[] neurons;
-    DoubleMatrix[] weightsOfNeurons;
-    
-    Layer(int numNeurons, int numNeuronsInPrevLayer) {
-        neurons = new Neuron[numNeurons];
-        weightsOfNeurons = new DoubleMatrix[numNeurons];
-        ArrayList<Double> list = new ArrayList<Double>();
-        for (int i = 0; i <= numNeuronsInPrevLayer; i++)
-            list.add(1.0);
-        for (int i = 0; i < neurons.length; i++)
-            weightsOfNeurons[i] = new DoubleMatrix(list);
-        for (int i = 0; i < neurons.length; i++)
-            neurons[i] = new Neuron (weightsOfNeurons[i]);
-    }
-    
-    DoubleMatrix calculateYs(DoubleMatrix inputs) {
-        ArrayList<Double> l = new ArrayList<Double>(inputs.elementsAsList());
-        l.add(1.0);
-        inputs = new DoubleMatrix (l);
-        ArrayList<Double> list = new ArrayList<Double>();
-        for (Neuron n : neurons) {
-            Double d = n.calculateY(inputs);
-            list.add(d);
+    public Layer(Integer numNodesThisLayer, Integer numNodesNextLayer, boolean input, boolean output, int minibatchSize) {
+        this.input = input;
+        this.output = output;
+        this.numNodesThisLayer = numNodesThisLayer;
+        this.numNodesNextLayer = numNodesNextLayer;
+        this.minibatchSize = minibatchSize;
+        Random random = new Random(0);
+        if (!input){
+            S = MatrixUtils.createRealMatrix(minibatchSize, numNodesThisLayer);
+            D = MatrixUtils.createRealMatrix(minibatchSize, numNodesThisLayer);
         }
-        return new DoubleMatrix(list);
-    }
-    
-    DoubleMatrix calculateVs(DoubleMatrix inputs) {
-        ArrayList<Double> l = new ArrayList<Double>(inputs.elementsAsList());
-        l.add(1.0);
-        inputs = new DoubleMatrix (l);
-        ArrayList<Double> list = new ArrayList<Double>();
-        for (Neuron n : neurons) {
-            Double d = n.calculateV(inputs);
-            list.add(d);
+        if (!output){
+            W = MatrixUtils.createRealMatrix(numNodesThisLayer, numNodesNextLayer);            
+            
+            for (int i = 0; i < W.getRowDimension(); i++) {
+                for (int j = 0; j < W.getColumnDimension(); j++) {
+                    W.setEntry(i, j, getGaussian(random, 0, 1, 0.0001));
+                }
+            }
+            System.out.printf("weight from layer %d to %d is: \n", numNodesThisLayer, numNodesNextLayer);
+            System.out.println(W);
+            //System.out.println(getGaussian(random, 0, 1, 0.0001));
+            
         }
-        return new DoubleMatrix(list);
-    }
-    
-    DoubleMatrix calculateYsFromVs(DoubleMatrix V) {
-        ArrayList<Double> l = new ArrayList<Double>(V.elementsAsList());
-        ArrayList<Double> list = new ArrayList<Double>();
-        for (int i = 0; i < l.size(); i++) {
-            list.add(neurons[i].calculateYFromV(l.get(i)));
+        
+        if (input==false && output==false){
+            Fp = MatrixUtils.createRealMatrix(numNodesThisLayer, minibatchSize);   
         }
-        return new DoubleMatrix(list);
+           
     }
     
-    DoubleMatrix calculateDeivativeYs(DoubleMatrix V) {
-        ArrayList<Double> l = new ArrayList<Double>(V.elementsAsList());
-        ArrayList<Double> list = new ArrayList<Double>();
-        for (int i = 0; i < l.size(); i++) {
-            list.add(neurons[i].calculateDerivativeYFromV(l.get(i)));
+     private double getGaussian(Random random, double aMean, double aVariance, double aScale) {
+        return (aMean + random.nextGaussian() * aVariance)*aScale;
+     }
+    
+    
+    RealMatrix forwardPropagate(){
+        if(input == true){
+            return Z.multiply(W);
         }
-        return new DoubleMatrix(list);
-    }
-    
-    void print() {
-        System.out.println("Layer with " + neurons.length + " neurons");
-        for (Neuron n : neurons) {
-            n.print();
+        Z = applyActivation(S, false);
+        if(output == true){
+            return Z;
+        }else{
+            //hidden layer
+            
+            //add bias, make a new column at the end, Z = numexamples * numnodesThisLayer
+            double[][] newZ = new double[Z.getRowDimension()][Z.getColumnDimension()+1];
+            for (int i = 0; i < Z.getRowDimension(); i++) {
+                newZ[i][Z.getColumnDimension()] = 1;
+            }
+            Z = MatrixUtils.createRealMatrix(newZ);
+            Fp = applyActivation(S, true).transpose();
+            return Z.multiply(W);
         }
     }
     
+    
+    public RealMatrix applyActivation(RealMatrix X, boolean deriv){
+        double[][] mat = new double[X.getRowDimension()][X.getColumnDimension()];
+        for (int i = 0; i < X.getRowDimension(); i++) {
+            for (int j = 0; j < X.getColumnDimension(); j++) {
+                mat[i][j] = f_sigmoid(X.getEntry(i, j), deriv);
+            }
+        }
+        return MatrixUtils.createRealMatrix(mat);
+    }
+    
+    public double f_sigmoid(double X, boolean deriv){
+        if(deriv == false){
+            return 1 / (1 + Math.exp(-X));
+        }else{
+            return f_sigmoid(X, false)*(1 - f_sigmoid(X, false));
+        }
+    }
+
+
+    public double f_softmax(double X){
+        //Z = Math.sum(np.exp(X), axis=1)
+        //Z = Z.reshape(Z.shape[0], 1)
+        //return Math.exp(X) / Z
+        return f_sigmoid(X, false);
+    }
 }

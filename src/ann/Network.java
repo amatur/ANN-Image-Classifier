@@ -1,120 +1,132 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package ann;
 
+import static ann.ANN.AbaloneTrain;
 import java.util.ArrayList;
-import org.jblas.DoubleMatrix;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
 
 /**
  *
- * @author Hera
+ * @author Tasnim
  */
 public class Network {
-    
-    Layer[] layers;
-    
-    Network(int numClasses, int[] numNeuronsInHiddenLayer, int numFeaturesInInputLayer) {
-        layers = new Layer[numNeuronsInHiddenLayer.length + 1];
-        for (int i = 0; i < layers.length; i++) {
-            if (i == 0) {
-                layers[i] = new Layer (numNeuronsInHiddenLayer[i], numFeaturesInInputLayer);
-            } else if (i < layers.length - 1) {
-                layers[i] = new Layer (numNeuronsInHiddenLayer[i], numNeuronsInHiddenLayer[i - 1]);
-            } else {
-                layers[i] = new Layer (numClasses, numNeuronsInHiddenLayer[i - 1]);
-            }
-        }
-    }
-    
-    DoubleMatrix runInput(DoubleMatrix features) {
-        DoubleMatrix returnMatrix = features;
-        for (Layer l : layers) {
-            returnMatrix = l.calculateYsFromVs(l.calculateVs(returnMatrix));
-        }
-        return returnMatrix;
-    }
-    
-    void train(ArrayList<Example> trainList, double learningRate) {
-        int n = layers.length;
-        for (int iterCount = 0; iterCount < 500000; iterCount++) {
-            DoubleMatrix[][] weightUpdateAmount = new DoubleMatrix[n][];
-            for (int i = 0; i < weightUpdateAmount.length; i++) {
-                weightUpdateAmount[i] = new DoubleMatrix[layers[i].neurons.length];
-            }
-            for (int i = 0; i < n; i++) {
-                for (int j = 0; j < layers[i].neurons.length ; j++) {
-                    weightUpdateAmount[i][j] = DoubleMatrix.zeros(layers[i].neurons[j].weights.data.length);
-                }
-            }
-            for (Example e : trainList) {
-                DoubleMatrix[] deltas = new DoubleMatrix[n];
-                DoubleMatrix[] Vs = new DoubleMatrix[n];
-                DoubleMatrix[] Ys = new DoubleMatrix[n];
-                DoubleMatrix[] derivativesYs = new DoubleMatrix[n];
-                for (int i = 0; i < Vs.length; i++) {                    
-                    if (i == 0)
-                        Vs[i] = layers[i].calculateVs(e.features);
-                    else
-                        Vs[i] = layers[i].calculateVs(Ys[i - 1]);
-                    Ys[i] = layers[i].calculateYsFromVs(Vs[i]);
-                    derivativesYs[i] = layers[i].calculateDeivativeYs(Vs[i]);
-                }
-                deltas[n - 1] = Ys[n - 1].sub(e.outputs);
-                for (int i = 0; i < deltas[n - 1].data.length; i++) {
-                    deltas[n - 1].data[i] *= derivativesYs[n - 1].data[i];
-                }
-                for (int r = n - 1; r > 0; r--) {
-                    DoubleMatrix m = layers[r].weightsOfNeurons[0];
-                    for (int i = 1; i < layers[r].weightsOfNeurons.length; i++) {
-                        m = DoubleMatrix.concatHorizontally(m, layers[r].weightsOfNeurons[i]);
-                    }
-                    ArrayList<DoubleMatrix> dmArray = new ArrayList(m.rowsAsList());
-                    m = dmArray.get(0);
-                    for (int i = 1; i < dmArray.size()-1; i++) {
-                        m = DoubleMatrix.concatVertically(m, dmArray.get(i));
-                    }
-                    // TODO ... debug point
-                    try {
-                        deltas[r - 1] = (deltas[r].transpose().mmul(m.transpose())).transpose();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        System.out.println(r + " " + n + "\n" + deltas[r].transpose() + "\n" + m.transpose());
-                    }
-                    for (int i = 0; i < deltas[r - 1].data.length; i++) {
-                        try {
-                            deltas[r - 1].data[i] *= derivativesYs[r - 1].data[i];
-                        } catch (Exception ex) {
-                            System.out.println(deltas[r - 1] + "\n" + derivativesYs[r - 1]);
-                            ex.printStackTrace();
-                            System.exit(-1);
-                        }
-                    }
-                }
-                for (int i = 0; i < n; i++) {
-                    for (int j = 0; j < layers[i].neurons.length; j++) {
-                        ArrayList l;
-                        if ( i == 0 ) {
-                            l = new ArrayList(e.features.elementsAsList());
-                        } else {
-                            l = new ArrayList(Ys[i - 1].elementsAsList());
-                        }
-                        l.add(1.0);
-                        DoubleMatrix f = new DoubleMatrix (l);
-                        weightUpdateAmount[i][j] = weightUpdateAmount[i][j].add( f.mmul(deltas[i].data[j]) );
-                    }
-                }
-            }
-            for (int i = 0; i < n; i++) {
-                for (int j = 0; j < layers[i].neurons.length; j++) {
-                    layers[i].neurons[j].weights = layers[i].neurons[j].weights.add( weightUpdateAmount[i][j].mmul(-learningRate) );
-                }
-            }
 
+    int numLayers;
+    Layer[] layers;
+    int minibatchsize;
+    ArrayList<Example> list;
+
+    public Network(ArrayList<Example> list, int[] layers, int minibatchsize) {
+        this.layers = new Layer[numLayers];
+        this.minibatchsize = minibatchsize;
+        this.numLayers = layers.length;
+        this.list = list;
+        this.layers = new Layer[numLayers];
+
+        /**
+         * *** input layer (0), hidden layers, output layer (numLayers-1)***
+         */
+        for (int i = 0; i < numLayers - 1; i++) {
+            // input layer
+            if (i == 0) {
+                System.out.println("Initializing input layer with size " + layers[i]);
+
+                //add bias
+                this.layers[0] = new Layer(layers[0] + 1, layers[1], true, false, minibatchsize);
+            } // output layer
+            else if (i == numLayers - 1) {
+                System.out.println("Initializing output layer with size " + layers[i]);
+                //no bias is added
+                this.layers[i] = new Layer(layers[i], null, false, true, minibatchsize);
+                // you have to do softmax in this layer
+            } else {
+                System.out.printf("Initializing hidden layer %d layer with size %d \n", i, layers[i]);
+
+                //add bias
+                this.layers[i] = new Layer(layers[i] + 1, layers[i + 1], false, false, minibatchsize);
+            }
         }
+
+        System.out.printf("Network creation done!\n");
+
     }
-    
-    void print() {
-        for (Layer l : layers) {
-            l.print();
+
+    RealMatrix forward_propagate() {
+        //number of examples, n
+        int n = list.size();
+
+        //number of features + 1 for bias, m
+        int m = AbaloneLoader.NUM_FEATURES + 1;
+
+        double[][] nmMat = new double[n][m];
+        for (int i = 0; i < n; i++) {
+            Example ex = list.get(i);
+            for (int j = 0; j < m - 1; j++) {
+                nmMat[i][j] = ex.features.get(j);
+            }
+            //add bias
+            for (int j = m - 1; j < m; j++) {
+                nmMat[i][j] = 1;
+            }
         }
+        //X => n * m matrix -> example vs. features
+        RealMatrix X = MatrixUtils.createRealMatrix(nmMat);
+        this.layers[0].Z = X;   //input layer
+
+        for (int i = 0; i < numLayers - 1; i++) {
+            layers[i + 1].S = layers[i].forwardPropagate();
+        }
+        return layers[numLayers - 1].forwardPropagate();
+
     }
-    
+
+    public void doit() {
+
+//        
+//        
+//        
+//        //number of examples, n
+//        int n = list.size();
+//        
+//        //number of feature, m
+//        int m = AbaloneLoader.NUM_FEATURES ;
+//        
+//        double[][] nmMat= new double[n][m];
+//        for (int i = 0; i < n; i++) {
+//            Example ex  = list.get(i);
+//            for (int j = 0; j < m; j++) {                
+//                nmMat[i][j] = ex.features.get(j);
+//            }
+//        }
+//        //X => n * m matrix -> example vs. features
+//        RealMatrix X = MatrixUtils.createRealMatrix(nmMat);
+//        
+//        //System.out.println("FFF" + X.getRowDimension());
+//        
+//        //W => m * a matrix -> num of features vs. weights
+//        double[] layer1Weights = {5, 2, 3};
+//        double[][] Wmat = new double[m][layer1Weights.length];
+//        for (int i = 0; i < m; i++) {
+//            for (int j = 0; j < layer1Weights.length; j++) {                
+//                Wmat[i][j] = layer1Weights[j];
+//            }
+//        }
+//        RealMatrix W = MatrixUtils.createRealMatrix(Wmat);
+//        
+//        RealMatrix S = X.multiply(W);
+//        RealMatrix Z = applyActivation(S, false);
+//        
+//        
+//        System.out.println(S);        System.out.println(Z);
+//
+//        
+//        System.out.println(S.getColumnDimension());
+//         System.out.println(S.getRowDimension());
+    }
+
 }

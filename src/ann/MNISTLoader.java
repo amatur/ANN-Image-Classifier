@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /*
@@ -95,7 +97,7 @@ public class MNISTLoader {
             //0004     32 bit integer  60000            number of items
             dataFis.read(bytes, 0, 4);
             int numItems = (new BigInteger(bytes)).intValue();
-            assert numItems == 10000;
+            //assert numItems == 10000 or 60000;
 
             //0008     32 bit integer  28               number of rows
             dataFis.read(bytes, 0, 4);
@@ -118,6 +120,7 @@ public class MNISTLoader {
                     // System.out.println(pixelValues[j]);
                 }
                 Example ex = new Example(pixelValues, getLabelArrayOneHot(labels[item], NUM_CLASSES));
+                //ex.label = labels[item];
                 examples.add(ex);
             }
 
@@ -146,6 +149,28 @@ public class MNISTLoader {
         return subset;
     }
     
+    public ArrayList<Example> getCompleteSubset(int subestSize){
+        ArrayList<Example> al = getExampleList();
+        ArrayList<Example> subset = new ArrayList<>();
+        HashMap<Integer, ArrayList<Example>> map = new HashMap<>();
+
+        for(int i = 0; i < NUM_CLASSES; i++){
+            map.put(i, new ArrayList<>());
+        }
+        
+        for (Example ex: al){
+            map.get((Integer)(ex.getLabel())).add(ex);
+        }
+        
+        int numExamplesPerClass = subestSize/10;
+        for (Integer key: map.keySet()) {
+            ArrayList<Example> keyExamples = map.get((Integer)key);
+            for (int i = 0; i < numExamplesPerClass; i++) {
+                subset.add(keyExamples.get(i));
+            }
+        }
+        return subset;
+    }
     
 //    public static void main(String[] args) {
 //        ImageDigitLoader loader = new ImageDigitLoader(TEST_LABEL, TEST_IMAGE);

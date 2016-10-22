@@ -3,7 +3,11 @@ package ann;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.jblas.Decompose.LUDecomposition;
+import org.jblas.DoubleMatrix;
 
 /**
  *
@@ -15,47 +19,77 @@ public class ANN {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        ArrayList<Example> list = AbaloneTrain(28);
+         int[] layers = {AbaloneLoader.NUM_FEATURES, 10, 19, 28};
+        Network n = new Network(list, layers, 28);
+        /*
+         Scanner in = new Scanner(System.in);
+         int[] nums = {5, 10};
         
-        Scanner in = new Scanner(System.in);
-        int[] nums = {10, 10, 10};
-        //Network net = new Network (2, nums, 2);
-        Network net = new Network (MNISTLoader.NUM_CLASSES, nums, MNISTLoader.NUM_FEATURES);
+         //Network net = new Network (MNISTLoader.NUM_CLASSES, nums, MNISTLoader.NUM_FEATURES);
+         Network net = new Network (AbaloneLoader.NUM_RINGS, nums, AbaloneLoader.NUM_FEATURES);
+         //Network net = new Network (2, nums, 2);
         
-        ArrayList list = MNISTDatasetGenerator();
-        //net.train(simpleDatasetGenerator(), 0.1);
-        net.train(list , 1.0);
+         ArrayList list = AbaloneTrain(400);
+         //ArrayList list = MNISTDatasetTest(50);
+         //ArrayList list = simpleDatasetGenerator();
+        
+         net.train(list , 0.4);
         
         
-        System.out.println("Done training, start checking");
-        //ArrayList<Example> al = simpleDatasetGenerator();
-        ArrayList<Example> al = list;
-        for (Example e : al) {
-            System.out.println("Result: " + net.runInput(e.features) + " where actually " + e.outputs);
-        }
-        
+         System.out.println("Done training, start checking");
+         //ArrayList<Example> al = simpleDatasetGenerator();
+         ArrayList<Example> al = list;
+         for (Example e : al) {
+         DoubleMatrix result =  net.runInput(e.features);
+         System.out.println("Result: " + result + " where actually " + e.outputs);
+         System.out.println("Result: " + Example.getLabel(result) + " where actually " + Example.getLabel(e.outputs));
+         }
+         */
     }
+
+//    public double update_weights(double eta, int num_layers){
+//        for (int i = 0; i < num_layers-1; i++) {
+//            W_grad = -eta*(layers[i+1].D.dot(layers[i].Z)).T;
+//            layers[i].W += W_grad;
+//        }
+//    }
     
-    
-    static ArrayList<Example> MNISTDatasetGenerator() {
+
+    static ArrayList<Example> MNISTDatasetTest(int setSize) {
         MNISTLoader loader = new MNISTLoader(MNISTLoader.TEST_LABEL, MNISTLoader.TEST_IMAGE);
-        ArrayList<Example> al = loader.getRandomSubset(2);
-        System.out.println(al); 
+        ArrayList<Example> al = loader.getCompleteSubset(setSize);
+        //System.out.println(al);
         return al;
     }
-    
+
+    static ArrayList<Example> MNISTDatasetTrain(int setSize) {
+        MNISTLoader loader = new MNISTLoader(MNISTLoader.TRAIN_LABEL, MNISTLoader.TRAIN_IMAGE);
+        ArrayList<Example> al = loader.getCompleteSubset(setSize);
+        //System.out.println(al);
+        return al;
+    }
+
+    static ArrayList<Example> AbaloneTrain(int setSize) {
+        AbaloneLoader loader = new AbaloneLoader(AbaloneLoader.ABALONE_TRAIN);
+        ArrayList<Example> al = loader.getCompleteSubset(setSize);
+        //System.out.println(al);
+        return al;
+    }
+
     static ArrayList<Example> simpleDatasetGenerator() {
         ArrayList<Example> list = new ArrayList<Example>();
         for (int i = 0; i < 50; i++) {
-            double x = 2*(Math.random() - 1);
-            double y = 2*(Math.random() - 1);
+            double x = 2 * (Math.random() - 1);
+            double y = 2 * (Math.random() - 1);
             double[] features = {x, y};
             double[] classif = {1.0, 0.0};
             list.add(new Example(features, classif));
         }
         for (int i = 0; i < 50; i++) {
-            double x = 4*(Math.random() - 1);
-            double y = 4*(Math.random() - 1);
-            if (x*x < 1.3 || y*y < 1.3) {
+            double x = 4 * (Math.random() - 1);
+            double y = 4 * (Math.random() - 1);
+            if (x * x < 1.3 || y * y < 1.3) {
                 i--;
                 continue;
             }
@@ -66,7 +100,8 @@ public class ANN {
         for (Example e : list) {
             e.print();
         }
+
         return list;
     }
-    
+
 }
