@@ -6,6 +6,7 @@ import java.util.Scanner;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 import org.jblas.Decompose.LUDecomposition;
 import org.jblas.DoubleMatrix;
 
@@ -21,7 +22,22 @@ public class ANN {
     public static void main(String[] args) {
         ArrayList<Example> list = AbaloneTrain(28);
          int[] layers = {AbaloneLoader.NUM_FEATURES, 10, 19, 28};
-        Network n = new Network(list, layers, 28);
+        Network n = new Network(list, layers, list.size());
+        RealMatrix v = n.forwardPropagate();
+       
+        System.out.println(list);
+        System.out.println(v + " " + v.getColumnDimension() + " " + v.getRowDimension());
+        
+        RealMatrix labelMatrix = MatrixUtils.createRealMatrix(list.size(), AbaloneLoader.NUM_RINGS);
+        
+        for (int i = 0; i < list.size(); i++) {
+            labelMatrix.setRow(i, list.get(i).outputs.toArray());
+        }
+        System.out.println(labelMatrix);
+      
+        n.backPropagate(labelMatrix, labelMatrix);
+        n.evaluate();
+        
         /*
          Scanner in = new Scanner(System.in);
          int[] nums = {5, 10};
@@ -56,6 +72,10 @@ public class ANN {
 //    }
     
 
+    static void runTest(RealMatrix Y, ArrayList<Example> list){
+        
+    }
+    
     static ArrayList<Example> MNISTDatasetTest(int setSize) {
         MNISTLoader loader = new MNISTLoader(MNISTLoader.TEST_LABEL, MNISTLoader.TEST_IMAGE);
         ArrayList<Example> al = loader.getCompleteSubset(setSize);
@@ -72,7 +92,7 @@ public class ANN {
 
     static ArrayList<Example> AbaloneTrain(int setSize) {
         AbaloneLoader loader = new AbaloneLoader(AbaloneLoader.ABALONE_TRAIN);
-        ArrayList<Example> al = loader.getCompleteSubset(setSize);
+        ArrayList<Example> al = loader.getExampleList();
         //System.out.println(al);
         return al;
     }

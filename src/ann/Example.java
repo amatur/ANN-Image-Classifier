@@ -1,6 +1,9 @@
 package ann;
 
 import java.util.ArrayList;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 import org.jblas.DoubleMatrix;
 
 /**
@@ -9,24 +12,24 @@ import org.jblas.DoubleMatrix;
  */
 public class Example {
     
-    DoubleMatrix features;
-    DoubleMatrix outputs;
+    RealVector features;
+    RealVector outputs;
 
-    public Example(DoubleMatrix features, DoubleMatrix outputs) {
+    public Example(RealVector features, RealVector outputs) {
         this.features = features;
         this.outputs = outputs;
     }
     
     public Example(double[] features, double[] outputs) {
-        this.features = new DoubleMatrix (features);
-        this.outputs = new DoubleMatrix (outputs);
+        this.features = MatrixUtils.createRealVector(features);
+        this.outputs = MatrixUtils.createRealVector(outputs);
     }
     
     public Example(double[] features, int label, int numLabels ) {
-        this.features = new DoubleMatrix (features);        
+        this.features = MatrixUtils.createRealVector(features);        
         double arr[] = new double[numLabels];
         arr[label] = 1.0;        
-        this.outputs = new DoubleMatrix (arr);
+        this.outputs = MatrixUtils.createRealVector(arr);
     }
     
     
@@ -34,30 +37,31 @@ public class Example {
      public int getLabel() {
         double max = Double.NEGATIVE_INFINITY;
         int label = -1;
-        ArrayList<Double> al = new ArrayList<>(outputs.elementsAsList()) ;
-        for (int i = 0; i < outputs.length; i++) {
+        double [] al = outputs.toArray();
+        for (int i = 0; i < al.length; i++) {
             
-            if(al.get(i) >= max){
-                max = al.get(i);
+            if(al[i] >= max){
+                max = al[i];
+                label = i;
+            }
+        }
+        return label;
+    }
+     
+     public static int getLabel(RealVector outputs) {
+        double max = Double.NEGATIVE_INFINITY;
+        int label = -1;
+        double [] al = outputs.toArray();
+        for (int i = 0; i < al.length; i++) {
+            
+            if(al[i] >= max){
+                max = al[i];
                 label = i;
             }
         }
         return label;
     }
    
-    public static int getLabel(DoubleMatrix outputs) {
-        double max = Double.NEGATIVE_INFINITY;
-        int label = -1;
-        ArrayList<Double> al = new ArrayList<>(outputs.elementsAsList()) ;
-        for (int i = 0; i < outputs.length; i++) {
-            
-            if(al.get(i) >= max){
-                max = al.get(i);
-                label = i;
-            }
-        }
-        return label;
-    }
     
     void print() {
         System.out.println(features + " mapped to " + outputs);
@@ -66,8 +70,8 @@ public class Example {
     @Override
     public String toString() {
         String str = "";
-        ArrayList<Double> al = new ArrayList<>(features.elementsAsList()) ;
-        for (Double d : al) {
+        double [] al = features.toArray();
+        for (double d : al) {
             str += d + ", ";
         }
         return "Example{" + "featureVector=" + str + ", class=" + getLabel(this.outputs) + '}' + "\n";
