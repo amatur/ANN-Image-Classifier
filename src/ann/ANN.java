@@ -22,12 +22,14 @@ public class ANN {
         
         //creating data
         ArrayList<Example> list = MNISTDatasetTrain();
+        //ArrayList<Example> list = AbaloneTrain();
         
-        int[] layers = {MNISTLoader.NUM_FEATURES, 100, 100, MNISTLoader.NUM_CLASSES};
-        int minibatchsize = 1;
+        int[] layers = {MNISTLoader.NUM_FEATURES, 90, 80, MNISTLoader.NUM_CLASSES};
+        //int[] layers = {AbaloneLoader.NUM_FEATURES, 90, 80, AbaloneLoader.NUM_CLASSES};
+        int minibatchsize = 100;
         Network n = new Network(list, layers, minibatchsize);
         n.evaluate();
-        
+        //n.forwardPropagate(list);
         
         
         //Abalone
@@ -82,6 +84,12 @@ public class ANN {
 //        }
 //    }
     
+    
+    
+    
+    static void splitTrainValidation(ArrayList<Example> list, double percent){
+        percent = 0.7;
+    }
 
     static void runTest(RealMatrix Y, ArrayList<Example> list){
         
@@ -98,14 +106,15 @@ public class ANN {
     static ArrayList<Example> MNISTDatasetTrain() {
         MNISTLoader loader = new MNISTLoader(MNISTLoader.TRAIN_LABEL, MNISTLoader.TRAIN_IMAGE);
         //ArrayList<Example> al = loader.getCompleteSubset(setSize);
+         //ArrayList<Example> al = loader.getRandomSubset(1000);
          ArrayList<Example> al = loader.getExampleList();
         //System.out.println(al);
         return al;
     }
 
-    static ArrayList<Example> AbaloneTrain(int setSize) {
+    static ArrayList<Example> AbaloneTrain() {
         AbaloneLoader loader = new AbaloneLoader(AbaloneLoader.ABALONE_TRAIN);
-        ArrayList<Example> al = loader.getExampleList();
+        ArrayList<Example> al = loader.getRandomSubset(1000);
         //System.out.println(al);
         return al;
     }

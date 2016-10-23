@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -97,13 +98,26 @@ public class AbaloneLoader {
         examples.add(new Example(darr, cls, NUM_RINGS));
     }
 
+    
+    
+    public ArrayList<Example> getRandomSubset(int subestSize){
+        ArrayList<Example> al = getExampleList();
+        ArrayList<Example> subset = new ArrayList<>();
+        Collections.shuffle(al);
+        for (int i = 0; i < subestSize; i++) {
+                subset.add(al.get(i));
+        }
+        return subset;
+    }
+    
+    
     public ArrayList<Example> getCompleteSubset(int subestSize) {
         ArrayList<Example> al = getExampleList();
         ArrayList<Example> subset = new ArrayList<>();
         HashMap<Integer, ArrayList<Example>> map = new HashMap<>();
 
         for (int i = 0; i < NUM_RINGS; i++) {
-            map.put(i, new ArrayList<>());
+           // map.put(i, new ArrayList<>());
         }
 
         for (Example ex : al) {

@@ -144,7 +144,7 @@ public class MNISTLoader {
         ArrayList<Example> subset = new ArrayList<>();
         Collections.shuffle(al);
         for (int i = 0; i < subestSize; i++) {
-                subset.add(al.get(0));
+                subset.add(al.get(i));
         }
         return subset;
     }
@@ -155,7 +155,7 @@ public class MNISTLoader {
         HashMap<Integer, ArrayList<Example>> map = new HashMap<>();
 
         for(int i = 0; i < NUM_CLASSES; i++){
-            map.put(i, new ArrayList<>());
+           // map.put(i, new ArrayList<>());
         }
         
         for (Example ex: al){

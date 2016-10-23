@@ -70,10 +70,19 @@ public class Network {
         //X => n * m matrix -> example vs. features
         RealMatrix X = MatrixUtils.createRealMatrix(nmMat);
         this.layers[0].Z = X;   //input layer
-
+        
+       // System.out.println("input layer Z");
+        //        System.out.println(this.layers[0].Z );
+         //       System.out.println("");
+        //
+        //System.out.println("lay0 Z+" + this.layers[0].Z.getRowDimension());;
+        //System.out.println(this.layers[0].Z.getColumnDimension());;
+        
+        
         for (int i = 0; i < layers.length - 1; i++) {
             // System.out.println(i);
             this.layers[i + 1].S = this.layers[i].forwardPropagate();
+           // System.out.println("layer "+ (i+1) );
         }
         return this.layers[layers.length - 1].forwardPropagate();
 
@@ -87,8 +96,8 @@ public class Network {
             // System.out.println(W_nobias.getRowDimension());
             // System.out.println(W_nobias.getColumnDimension());
             this.layers[i].D = W_nobias.multiply(this.layers[i + 1].D);
-            System.out.printf("D: %d %d\n ", this.layers[i].D.getRowDimension(), this.layers[i].D.getColumnDimension());
-            System.out.printf("F: %d %d\n ", this.layers[i].Fp.getRowDimension(), this.layers[i].Fp.getColumnDimension());
+          //  System.out.printf("D: %d %d\n ", this.layers[i].D.getRowDimension(), this.layers[i].D.getColumnDimension());
+          //  System.out.printf("F: %d %d\n ", this.layers[i].Fp.getRowDimension(), this.layers[i].Fp.getColumnDimension());
 
             //column traversing => examples one by one
             for (int j = 0; j < this.layers[i].D.getColumnDimension(); j++) {
@@ -128,16 +137,46 @@ public class Network {
                     labelMatrix.setRow(j, list.get(i + j).outputs.toArray());
                     sublist.add(list.get(i + j));
                 }
-
+                //System.out.println(sublist);
+                //break;
+                
                 output = this.forwardPropagate(sublist); //yhat
                 this.backPropagate(output, labelMatrix);
                 this.updateWeights(eta);
+                System.out.printf("BATCH\n");
+                //System.out.println(output);
+                //for (int j = 0; j < sublist.size(); j++) {
+                //    System.out.printf("example %d : [%d E, %d A], \n", i + j, Example.getLabel(output.getRowVector(j)), sublist.get(j).getLabel());
+                //}
+                    System.out.printf("Act: [");
+
+                for (int j = 0; j < sublist.size(); j++) {
+                    System.out.printf("%d, ", sublist.get(j).getLabel());
+                }
+                    System.out.printf("]\n");
+                
+                                        System.out.printf("Est [");
+
+                for (int j = 0; j < sublist.size(); j++) {
+                    System.out.printf("%d, ", Example.getLabel(output.getRowVector(j)));
+                }
+                    System.out.printf("]\n");
+
+                
+                System.out.printf("BATCHEND\n");
+                
+                //return;
+                /*
+                
 
                 //System.out.println(output);
                 for (int j = 0; j < sublist.size(); j++) {
                     System.out.printf("example %d is classified %d, where actually %d\n\n", i + j, Example.getLabel(output.getRowVector(j)), sublist.get(j).getLabel());
                 }
+                        */
+                 
             }
+           //return;
         }
     }
 

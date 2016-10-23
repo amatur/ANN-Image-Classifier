@@ -47,12 +47,13 @@ public class Layer {
         }
         if (!output) {
             W = MatrixUtils.createRealMatrix(numNodesThisLayer, numNodesNextLayer);
-
+            /*
             for (int i = 0; i < W.getRowDimension(); i++) {
                 for (int j = 0; j < W.getColumnDimension(); j++) {
-                    W.setEntry(i, j, getGaussian(random, 0, 1, 0.0001));
+                    W.setEntry(i, j, getGaussian(random, 0, 1, 0.1));
                 }
             }
+            */
             //System.out.printf("weight from layer %d to %d is: \n", numNodesThisLayer, numNodesNextLayer);
             //System.out.println(W);
             //System.out.println(getGaussian(random, 0, 1, 0.0001));
@@ -82,6 +83,12 @@ public class Layer {
             //add bias, make a new column at the end, Z = numexamples * numnodesThisLayer
             double[][] newZ = new double[Z.getRowDimension()][Z.getColumnDimension() + 1];
             for (int i = 0; i < Z.getRowDimension(); i++) {
+                for (int j = 0; j <  Z.getColumnDimension(); j++) {
+                    newZ[i][j] = Z.getEntry(i, j);
+                }
+                
+            }
+            for (int i = 0; i < Z.getRowDimension(); i++) {
                 newZ[i][Z.getColumnDimension()] = 1;
             }
             Z = MatrixUtils.createRealMatrix(newZ);
@@ -92,20 +99,31 @@ public class Layer {
 
     public RealMatrix applyActivation(RealMatrix X, boolean deriv) {
         double[][] mat = new double[X.getRowDimension()][X.getColumnDimension()];
-        for (int i = 0; i < X.getRowDimension(); i++) {
-            for (int j = 0; j < X.getColumnDimension(); j++) {
-                mat[i][j] = f_sigmoid(X.getEntry(i, j), deriv);
+        if(!this.output){
+            for (int i = 0; i < X.getRowDimension(); i++) {
+                for (int j = 0; j < X.getColumnDimension(); j++) {
+                    mat[i][j] = f_sigmoid(X.getEntry(i, j), deriv);
+                }
             }
         }
         //softmax
-//        if(0){
-//            for (int i = 0; i < X.getRowDimension(); i++) {
-//                for (int j = 0; j < X.getColumnDimension(); j++) {
-//                    mat[i][j] = f_sigmoid(X.getEntry(i, j), deriv);
-//                }
-//            }
-//            Z = sum the columns(e^x)
-//        }
+        if (this.output){
+            System.out.println("SOFTTTTTTTTTTTTTTT");
+            // eki row er column dhore jog kore totogula row answer
+            // age joto row chilo totoi thakbe, column hobe ekta
+            // Z = ekta row er shob element er sum
+            // row er shob col element ke vaag dite hobe column sum diye
+            for (int i = 0; i < X.getRowDimension(); i++) {
+                double sameRowSum = 0.0;
+                for (int j = 0; j < X.getColumnDimension(); j++) {
+                   sameRowSum += Math.exp(X.getEntry(i, j));
+                }
+                for (int j = 0; j < X.getColumnDimension(); j++) {
+                    mat[i][j] = Math.exp(X.getEntry(i, j))/sameRowSum;
+                }
+            }
+            
+        }
 
         return MatrixUtils.createRealMatrix(mat);
     }
@@ -118,12 +136,5 @@ public class Layer {
         }
     }
     
-    //@TOBETESTED
-    public double f_softmax(double X, double sum) {
-        //Z = Math.sum(np.exp(X), axis=1)
-        //Z = Z.reshape(Z.shape[0], 1)
-        //return Math.exp(X) / Z
-        //return f_sigmoid(X, false);
-        return Math.exp(X)/sum;
-    }
+  
 }
