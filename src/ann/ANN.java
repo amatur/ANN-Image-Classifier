@@ -106,8 +106,8 @@ public class ANN {
     static ArrayList<Example> MNISTDatasetTrain() {
         MNISTLoader loader = new MNISTLoader(MNISTLoader.TRAIN_LABEL, MNISTLoader.TRAIN_IMAGE);
         //ArrayList<Example> al = loader.getCompleteSubset(setSize);
-         //ArrayList<Example> al = loader.getRandomSubset(1000);
-         ArrayList<Example> al = loader.getExampleList();
+         ArrayList<Example> al = loader.getRandomSubset(1000);
+         //ArrayList<Example> al = loader.getExampleList();
         //System.out.println(al);
         return al;
     }

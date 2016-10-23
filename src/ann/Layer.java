@@ -47,13 +47,13 @@ public class Layer {
         }
         if (!output) {
             W = MatrixUtils.createRealMatrix(numNodesThisLayer, numNodesNextLayer);
-            /*
+            ///*
             for (int i = 0; i < W.getRowDimension(); i++) {
                 for (int j = 0; j < W.getColumnDimension(); j++) {
                     W.setEntry(i, j, getGaussian(random, 0, 1, 0.1));
                 }
             }
-            */
+            //*/
             //System.out.printf("weight from layer %d to %d is: \n", numNodesThisLayer, numNodesNextLayer);
             //System.out.println(W);
             //System.out.println(getGaussian(random, 0, 1, 0.0001));
@@ -108,7 +108,6 @@ public class Layer {
         }
         //softmax
         if (this.output){
-            System.out.println("SOFTTTTTTTTTTTTTTT");
             // eki row er column dhore jog kore totogula row answer
             // age joto row chilo totoi thakbe, column hobe ekta
             // Z = ekta row er shob element er sum

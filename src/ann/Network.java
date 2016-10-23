@@ -70,19 +70,17 @@ public class Network {
         //X => n * m matrix -> example vs. features
         RealMatrix X = MatrixUtils.createRealMatrix(nmMat);
         this.layers[0].Z = X;   //input layer
-        
+
        // System.out.println("input layer Z");
         //        System.out.println(this.layers[0].Z );
-         //       System.out.println("");
+        //       System.out.println("");
         //
         //System.out.println("lay0 Z+" + this.layers[0].Z.getRowDimension());;
         //System.out.println(this.layers[0].Z.getColumnDimension());;
-        
-        
         for (int i = 0; i < layers.length - 1; i++) {
             // System.out.println(i);
             this.layers[i + 1].S = this.layers[i].forwardPropagate();
-           // System.out.println("layer "+ (i+1) );
+            // System.out.println("layer "+ (i+1) );
         }
         return this.layers[layers.length - 1].forwardPropagate();
 
@@ -97,7 +95,7 @@ public class Network {
             // System.out.println(W_nobias.getColumnDimension());
             this.layers[i].D = W_nobias.multiply(this.layers[i + 1].D);
           //  System.out.printf("D: %d %d\n ", this.layers[i].D.getRowDimension(), this.layers[i].D.getColumnDimension());
-          //  System.out.printf("F: %d %d\n ", this.layers[i].Fp.getRowDimension(), this.layers[i].Fp.getColumnDimension());
+            //  System.out.printf("F: %d %d\n ", this.layers[i].Fp.getRowDimension(), this.layers[i].Fp.getColumnDimension());
 
             //column traversing => examples one by one
             for (int j = 0; j < this.layers[i].D.getColumnDimension(); j++) {
@@ -126,8 +124,10 @@ public class Network {
 
         System.out.printf("Training for %d epochs... \n", numEpochs);
         for (int t = 0; t < numEpochs; t++) {
-            System.out.printf("Epoch %d: \n", t);
+            //System.out.printf("Epoch %d: \n", t);
 
+            
+            /*** Step 1: train ***/
             for (int i = 0; i < list.size(); i = i + minibatchsize) {
 
                 ArrayList<Example> sublist = new ArrayList<>();
@@ -139,44 +139,67 @@ public class Network {
                 }
                 //System.out.println(sublist);
                 //break;
-                
+
                 output = this.forwardPropagate(sublist); //yhat
                 this.backPropagate(output, labelMatrix);
                 this.updateWeights(eta);
-                System.out.printf("BATCH\n");
+                //System.out.printf("BATCH START\n");
+                
                 //System.out.println(output);
                 //for (int j = 0; j < sublist.size(); j++) {
                 //    System.out.printf("example %d : [%d E, %d A], \n", i + j, Example.getLabel(output.getRowVector(j)), sublist.get(j).getLabel());
                 //}
-                    System.out.printf("Act: [");
-
+                
+                /*
+                System.out.printf("Act: [");
                 for (int j = 0; j < sublist.size(); j++) {
                     System.out.printf("%d, ", sublist.get(j).getLabel());
                 }
-                    System.out.printf("]\n");
-                
-                                        System.out.printf("Est [");
+                System.out.printf("]\n");
 
+                System.out.printf("Est [");
                 for (int j = 0; j < sublist.size(); j++) {
                     System.out.printf("%d, ", Example.getLabel(output.getRowVector(j)));
                 }
-                    System.out.printf("]\n");
-
-                
+                System.out.printf("]\n");
                 System.out.printf("BATCHEND\n");
-                
+                */
                 //return;
                 /*
                 
-
-                //System.out.println(output);
-                for (int j = 0; j < sublist.size(); j++) {
-                    System.out.printf("example %d is classified %d, where actually %d\n\n", i + j, Example.getLabel(output.getRowVector(j)), sublist.get(j).getLabel());
-                }
-                        */
-                 
+                 //System.out.println(output);
+                 for (int j = 0; j < sublist.size(); j++) {
+                 System.out.printf("example %d is classified %d, where actually %d\n\n", i + j, Example.getLabel(output.getRowVector(j)), sublist.get(j).getLabel());
+                 }
+                 */
             }
-           //return;
+            
+            
+            
+            /*** Step 2: test on train data ***/
+            int correct = 0;
+            int total = list.size();
+            
+            
+            for (int i = 0; i < list.size(); i++) {
+                ArrayList<Example> sublist = new ArrayList<>();
+                sublist.add(list.get(i));
+                RealMatrix subOutput = this.forwardPropagate(sublist);
+                int actualLabel = sublist.get(0).getLabel();
+                int estimatedLabel = Example.getLabel(subOutput.getRowVector(0));
+                //System.out.printf("Act %d Est %d\n", actualLabel, estimatedLabel);
+                 if (actualLabel == estimatedLabel){
+                     
+                     correct++;
+                 }
+                
+            }
+            double accuracy = correct*1.0 /total * 100.0;
+            
+            //System.out.printf("Epoch \t Correct \t Total \t Accuracy \t Eta \n ");
+            System.out.printf("%d \t %d \t %d \t %f \t %f\n", t, correct, total, accuracy, eta);
+            
+            //return;
         }
     }
 
