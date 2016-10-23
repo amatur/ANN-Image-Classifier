@@ -18,8 +18,6 @@ public class AbaloneLoader {
     public static int NUM_INSTANCES = 4177;
     public static int NUM_FEATURES = 8;
 
-
-
     public String file;
 
     String[] AttributeNames

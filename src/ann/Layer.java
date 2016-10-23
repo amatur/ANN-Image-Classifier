@@ -8,7 +8,6 @@ package ann;
 import java.util.Random;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.*;
 
 /**
  *
@@ -27,7 +26,7 @@ public class Layer {
     Integer numNodesThisLayer;
     Integer numNodesNextLayer;
     int minibatchSize;
-
+    
     public Layer(Integer numNodesThisLayer, Integer numNodesNextLayer, boolean input, boolean output, int minibatchSize) {
         this.input = input;
         this.output = output;
@@ -54,8 +53,8 @@ public class Layer {
                     W.setEntry(i, j, getGaussian(random, 0, 1, 0.0001));
                 }
             }
-            System.out.printf("weight from layer %d to %d is: \n", numNodesThisLayer, numNodesNextLayer);
-            System.out.println(W);
+            //System.out.printf("weight from layer %d to %d is: \n", numNodesThisLayer, numNodesNextLayer);
+            //System.out.println(W);
             //System.out.println(getGaussian(random, 0, 1, 0.0001));
 
         }
@@ -118,11 +117,13 @@ public class Layer {
             return f_sigmoid(X, false) * (1 - f_sigmoid(X, false));
         }
     }
-
-    public double f_softmax(double X) {
+    
+    //@TOBETESTED
+    public double f_softmax(double X, double sum) {
         //Z = Math.sum(np.exp(X), axis=1)
         //Z = Z.reshape(Z.shape[0], 1)
         //return Math.exp(X) / Z
-        return f_sigmoid(X, false);
+        //return f_sigmoid(X, false);
+        return Math.exp(X)/sum;
     }
 }
