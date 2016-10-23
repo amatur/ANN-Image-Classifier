@@ -105,6 +105,16 @@ public class AbaloneLoader {
         ArrayList<Example> subset = new ArrayList<>();
         Collections.shuffle(al);
         for (int i = 0; i < subestSize; i++) {
+            Example ex = al.get(i);
+            double[] mean = {2, 0.524	,0.408	,0.140	,0.829,	0.359	,0.181,	0.239	};
+            double[] min = {1, 0.075	,0.055	,0.000,	0.002,	0.001	,0.001,	0.002	};
+            double[] max = {3, 0.815,	0.650	,1.130	,2.826,	1.488,	0.760	,1.005	};
+            double[] sd = {1	,0.099	,0.042,	0.490	,0.222	,0.110,	0.139,	3.224};
+            double[] correl = {1, 0.557,	0.575,	0.557,	0.540,	0.421,	0.504,	0.628};
+            for (int j = 0; j < NUM_FEATURES; j++) {
+                ex.features.setEntry(j,  ex.features.getEntry(j)/mean[j]);
+                //ex.features.setEntry(j,  (ex.features.getEntry(j)-min[j])/(max[j] - min[j]));
+            }
                 subset.add(al.get(i));
         }
         return subset;

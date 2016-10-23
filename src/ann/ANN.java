@@ -21,12 +21,13 @@ public class ANN {
     public static void main(String[] args) {
         
         //creating data
-        ArrayList<Example> list = MNISTDatasetTrain();
-        //ArrayList<Example> list = AbaloneTrain();
+        //ArrayList<Example> list = MNISTDatasetTrain();
+        ArrayList<Example> list = AbaloneTrain();
         
-        int[] layers = {MNISTLoader.NUM_FEATURES, 90, 80, MNISTLoader.NUM_CLASSES};
+        //int[] layers = {MNISTLoader.NUM_FEATURES, 90, 80, MNISTLoader.NUM_CLASSES};
         //int[] layers = {AbaloneLoader.NUM_FEATURES, 90, 80, AbaloneLoader.NUM_CLASSES};
-        int minibatchsize = 100;
+        int[] layers = {AbaloneLoader.NUM_FEATURES, 100, 13, AbaloneLoader.NUM_CLASSES};
+        int minibatchsize = 200;
         Network n = new Network(list, layers, minibatchsize);
         n.evaluate();
         //n.forwardPropagate(list);
@@ -114,8 +115,8 @@ public class ANN {
 
     static ArrayList<Example> AbaloneTrain() {
         AbaloneLoader loader = new AbaloneLoader(AbaloneLoader.ABALONE_TRAIN);
-        ArrayList<Example> al = loader.getRandomSubset(1000);
-        //System.out.println(al);
+        ArrayList<Example> al = loader.getRandomSubset(4000);
+        //ArrayList<Example> al = loader.getExampleList();
         return al;
     }
 

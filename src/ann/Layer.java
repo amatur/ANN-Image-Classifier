@@ -50,7 +50,8 @@ public class Layer {
             ///*
             for (int i = 0; i < W.getRowDimension(); i++) {
                 for (int j = 0; j < W.getColumnDimension(); j++) {
-                    W.setEntry(i, j, getGaussian(random, 0, 1, 0.1));
+                    //W.setEntry(i, j, getGaussian(random, 0, 1, 0.1));
+                    W.setEntry(i, j, getGaussian(random, 0, 1, 1/Math.sqrt(numNodesThisLayer)));
                 }
             }
             //*/

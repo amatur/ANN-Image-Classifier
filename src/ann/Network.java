@@ -117,7 +117,7 @@ public class Network {
     }
 
     public void evaluate() {
-        int numEpochs = 500;
+        int numEpochs = 4000;
         double eta = 0.05;
 
         RealMatrix output = null;
